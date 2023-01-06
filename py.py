@@ -43,9 +43,9 @@ def get_ks(T):
         return 106.4*(10**-3)
 def get_cs(T):
     if(T==0):
-        return 2.9679
+        return 2967.9
     elif(T==1):
-        return 2.8168
+        return 2816.8
 
 #Properties of flue gas
 #0 is 800 and 1 is 900 2 is 1000
@@ -137,25 +137,39 @@ def getAvgTemp(km,kox,hg,hs,tg,ts,delta):
         [0],
         [hs*ts*getA2(delta)],
     ])
-    resultMatrix = np.linalg.solve (matrix1,matrix2)
-    return  (resultMatrix[1]*[0]*resultMatrix[2][0])/2
+    resultMatrix = np.linalg.solve(matrix1,matrix2)
+    return  (resultMatrix[1][0]+resultMatrix[2][0])/2
 
-# print(getIntitalAvgTemp(26.69, get_hg(0.06993, 1222, 0.04283, 0), get_hs(0.1021, 2967.9,34.55*(10**-6) , 0), 800, 600))
+print(getIntitalAvgTemp(26.69, get_hg(0.06993, 1222, 0.04283, 0), get_hs(0.1021, 2967.9,34.55*(10**-6) , 0), 800, 600))
 
 # calculate delta by using tavg in meter
 def getDelta(T_Avg,tFrom, tTo):
-    pFrom = (T_Avg+273)(20+math.log(tFrom))
-    pTo = (T_Avg+273)(20+math.log(tTo))
+    pFrom = (T_Avg+273.15)*(20+math.log(tFrom))    
+    pTo = (T_Avg+273.15)*(20+math.log(tTo))
     X_FROM = math.pow(math.e, 0.000564*pFrom-9.934);
     X_TO = math.pow(math.e, 0.000564*pTo-9.934);
     return ((X_TO-X_FROM)/2)*(10**-6) #converted to meter
 
 # main iteration
 def calc(μs,ks,cs,μg,kg,cg,km,kox,ts,tg):
-    print("adf")
+    delta = 0
+    for timeIndex in range (100):
+        if(timeIndex==0):
+            print("Initial")
+            hg=get_hg(kg, cg, μg, delta)
+            hs=get_hs(ks, cs, μs, delta)
+            T_Avg = getIntitalAvgTemp(km, hg, hs, tg, ts)
+            delta = getDelta(T_Avg, 1, 10)
+            print(T_Avg)
+        else:
+            hg=get_hg(kg, cg, μg, delta)
+            hs=get_hs(ks, cs, μs, delta)
+            T_Avg = getAvgTemp(km, kox, hg, hs, tg, ts, delta)
+            delta = getDelta(T_Avg, (timeIndex*10), ((timeIndex+1)*10))
+            print(T_Avg)
 
 
-# 
+
 for i in range (2):
     μs = get_μs(i)
     ks = get_ks(i)
@@ -168,5 +182,8 @@ for i in range (2):
         kg = get_kg(j)
         cg = get_cg(j)
         tg=getTg(i)
+        print("Ts=",ts,"      Tg=",tg)
+        print("","μs=",μs, "ks=", ks, "cs=",cs, "μg=",μg, "kg=",kg, "cg=",cg, "km=",km, "kox=",kox, ts, tg)
+        print("----------------------------------------------------------\n")
         calc(μs, ks, cs, μg, kg, cg, km, kox, ts, tg)
         
