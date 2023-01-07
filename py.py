@@ -48,7 +48,7 @@ def get_cs(T):
         return 2816.8
 
 #Properties of flue gas
-#0 is 800 and 1 is 900 2 is 1000
+#0 is 800 ,1 is 900 and 2 is 1000
 def get_μg(T):
     if(T==0):
         return 0.04283
@@ -113,9 +113,10 @@ def get_hg(kg,cg,μg,delta):
 
 # calculate initial average tempreture
 def getIntitalAvgTemp(km,hg,hs,tg,ts):
+    l1 = get_l(0)
     matrix1 = np.array([
-        [(km*A1/get_l(0))+hg*A1, -1*(km*A1/get_l(0))],
-        [-1*(km*A1/get_l(0)), (km*A1/get_l(0))+hs*A1],
+        [(km*A1/l1)+hg*A1, -1*(km*A1/l1)],
+        [-1*(km*A1/l1), (km*A1/l1)+hs*A1],
     ])
     # matrix1Inv = np.linalg.inv(matrix1)
     matrix2 = np.array([
@@ -126,47 +127,48 @@ def getIntitalAvgTemp(km,hg,hs,tg,ts):
     return  resultMatrix[1][0]
 
 def getAvgTemp(km,kox,hg,hs,tg,ts,delta):
+    l1 = get_l(delta)
+    l2 = get_l2(delta)
+    A2 = getA2(delta)
     matrix1 = np.array([
-        [(km*A1/get_l(delta))+(hg*A1),-1*km*A1/get_l(delta),0],
-        [-1*km*A1/get_l(delta),(km*A1/get_l(delta)+(kox*getA2(delta)/get_l2(delta))),-1*(kox*getA2(delta)/get_l2(delta))],
-        [0,-1*(kox*getA2(delta)/get_l2(delta)),(kox*getA2(delta)/get_l2(delta))+(hs*getA2(delta))],
+        [(km*A1/l1)+(hg*A1),-1*km*A1/l1,0],
+        [-1*km*A1/l1,((km*A1/l1)+(kox*A2/l2)),-1*(kox*A2/l2)],
+        [0,-1*(kox*A2/l2),(kox*A2/l2)+(hs*A2)],
     ])
     # matrix1Inv = np.linalg.inv(matrix1)
     matrix2 = np.array([
         [hg*tg*A1],
         [0],
-        [hs*ts*getA2(delta)],
+        [hs*ts*A2],
     ])
     resultMatrix = np.linalg.solve(matrix1,matrix2)
     return  (resultMatrix[1][0]+resultMatrix[2][0])/2
 
-print(getIntitalAvgTemp(26.69, get_hg(0.06993, 1222, 0.04283, 0), get_hs(0.1021, 2967.9,34.55*(10**-6) , 0), 800, 600))
+# print(getIntitalAvgTemp(26.69, get_hg(0.06993, 1222, 0.04283, 0), get_hs(0.1021, 2967.9,34.55*(10**-6) , 0), 800, 600))
 
 # calculate delta by using tavg in meter
 def getDelta(T_Avg,tFrom, tTo):
-    pFrom = (T_Avg+273.15)*(20+math.log(tFrom))    
-    pTo = (T_Avg+273.15)*(20+math.log(tTo))
-    X_FROM = math.pow(math.e, 0.000564*pFrom-9.934);
-    X_TO = math.pow(math.e, 0.000564*pTo-9.934);
+    pFrom = (T_Avg+273.15)*(20+math.log(tFrom,10))    
+    pTo = (T_Avg+273.15)*(20+math.log(tTo,10))
+    X_FROM = math.pow(10, 0.000564*pFrom-9.934);
+    X_TO = math.pow(10, 0.000564*pTo-9.934);
     return ((X_TO-X_FROM)/2)*(10**-6) #converted to meter
 
 # main iteration
 def calc(μs,ks,cs,μg,kg,cg,km,kox,ts,tg):
     delta = 0
     for timeIndex in range (100):
+        hg=get_hg(kg, cg, μg, delta)
+        hs=get_hs(ks, cs, μs, delta)
         if(timeIndex==0):
             print("Initial")
-            hg=get_hg(kg, cg, μg, delta)
-            hs=get_hs(ks, cs, μs, delta)
             T_Avg = getIntitalAvgTemp(km, hg, hs, tg, ts)
             delta = getDelta(T_Avg, 1, 10)
-            print(T_Avg)
+            # print(delta)
         else:
-            hg=get_hg(kg, cg, μg, delta)
-            hs=get_hs(ks, cs, μs, delta)
             T_Avg = getAvgTemp(km, kox, hg, hs, tg, ts, delta)
             delta = getDelta(T_Avg, (timeIndex*10), ((timeIndex+1)*10))
-            print(T_Avg)
+            # print(delta)
 
 
 
@@ -182,8 +184,8 @@ for i in range (2):
         kg = get_kg(j)
         cg = get_cg(j)
         tg=getTg(i)
-        print("Ts=",ts,"      Tg=",tg)
+        print("\nTs=",ts,"      Tg=",tg)
         print("","μs=",μs, "ks=", ks, "cs=",cs, "μg=",μg, "kg=",kg, "cg=",cg, "km=",km, "kox=",kox, ts, tg)
-        print("----------------------------------------------------------\n")
+        print("----------------------------------------------------------")
         calc(μs, ks, cs, μg, kg, cg, km, kox, ts, tg)
         
