@@ -145,7 +145,7 @@ def getAvgTemp(km,kox,hg,hs,tg,ts,delta):
     return  (resultMatrix[1][0]+resultMatrix[2][0])/2
 
 
-# print(getAvgTemp(26.69, 0.84, 218, 841420, 800, 600, 1.25948*10**-6))
+# print(getAv,kligTemp(26.69, 0.84, 218, 841420, 800, 600, 1.25948*10**-6))
 
 # print(getIntitalAvgTemp(26.69, get_hg(0.06993, 1222, 0.04283, 0), get_hs(0.1021, 2967.9,34.55*(10**-6) , 0), 800, 600))
 
@@ -166,15 +166,14 @@ def calc(μs,ks,cs,μg,kg,cg,km,kox,ts,tg):
         if(timeIndex==0):
             print("Initial")
             T_Avg = getIntitalAvgTemp(km, hg, hs, tg, ts)
-            delta = getDelta(T_Avg, 1, 10)
-            # print(delta)
+            delta += getDelta(T_Avg, 1, 10)
+            print(T_Avg)
+            print("Initial")
         else:
             T_Avg = getAvgTemp(km, kox, hg, hs, tg, ts, delta)
-            delta = getDelta(T_Avg, ((timeIndex*10)+1), ((timeIndex+1)*10))
+            delta += getDelta(T_Avg, ((timeIndex*10)+1), ((timeIndex+1)*10))
             # print(delta)
-        print(T_Avg)
-
-
+            #print(T_Avg)
 
 def run():
     for i in range (2):
@@ -188,7 +187,7 @@ def run():
             μg = get_μg(j)
             kg = get_kg(j)
             cg = get_cg(j)
-            tg=getTg(i)
+            tg=getTg(j)
             print("\nTs=",ts,"      Tg=",tg)
             print("","μs=",μs, "ks=", ks, "cs=",cs, "μg=",μg, "kg=",kg, "cg=",cg, "km=",km, "kox=",kox, ts, tg)
             print("----------------------------------------------------------")
